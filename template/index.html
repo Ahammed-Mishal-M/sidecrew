@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Homepage - SideCrew{% endblock %}
+
+{% block styles %}
+.hero-bg {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("{% static 'assets/img/hero/h1_hero.jpg' %}");
+    background-size: cover;
+    background-position: center;
+}
+{% endblock %}
+
+
+{% block content %}
+
+    <section class="hero-bg text-white">
+        <div class="container mx-auto px-6 py-24 md:py-32 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">Your Trusted Partner for Part-Time Work</h1>
+            <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">SideCrew connects you with vetted, reliable workers for any task, all managed by our expert agents. Get help, find gigs, and grow your team with confidence.</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                 <a href="{% url 'client_register' %}" class="bg-blue-600 text-white font-semibold px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg w-full sm:w-auto">Post a Job</a>
+                 <a href="{% url 'worker_register' %}" class="bg-slate-100 text-slate-800 font-semibold px-8 py-3 rounded-lg hover:bg-slate-200 transition-colors text-lg w-full sm:w-auto">Find Flexible Work</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-20 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">A Better Way to Work, for Everyone</h2>
+                <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">We built a platform that ensures reliability, support, and success for every user.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                    <div class="bg-blue-100 text-blue-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">For Clients</h3>
+                    <p class="text-slate-600">Post any task and let our agents handle the rest. We vet, match, and manage reliable workers so you can focus on what matters.</p>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                     <div class="bg-blue-100 text-blue-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">For Workers</h3>
+                    <p class="text-slate-600">Access a steady stream of flexible jobs that fit your schedule. Get agent support, clear instructions, and fast, reliable payments.</p>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                    <div class="bg-blue-100 text-blue-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21v-1a6 6 0 00-5.197-5.975M15 12a4 4 0 110-8 4 4 0 010 8z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">For Agents</h3>
+                    <p class="text-slate-600">Leverage our platform to manage your own crew of workers. We provide the tools to coordinate jobs, communicate, and earn.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">Get Started in 3 Simple Steps</h2>
+            </div>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+                <div class="text-center max-w-xs">
+                    <div class="bg-blue-600 text-white rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
+                    <h3 class="text-xl font-bold mb-2">Client Posts a Task</h3>
+                    <p class="text-slate-600">Describe what you need done, when, and where. Our simple form makes it quick and easy.</p>
+                </div>
+                <div class="text-center max-w-xs">
+                    <div class="bg-blue-600 text-white rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
+                    <h3 class="text-xl font-bold mb-2">Agent Manages & Assigns</h3>
+                    <p class="text-slate-600">An expert agent reviews, vets, and assigns the perfect worker for your job.</p>
+                </div>
+                <div class="text-center max-w-xs">
+                    <div class="bg-blue-600 text-white rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
+                    <h3 class="text-xl font-bold mb-2">Worker Completes the Job</h3>
+                    <p class="text-slate-600">The assigned worker completes the task. You approve, and we handle the payment.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">Trusted by People Like You</h2>
+            </div>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <p class="text-slate-700 mb-6">"The agent found us amazing staff for our weekend event on short notice. Incredibly professional and reliable. SideCrew is a game-changer for event management."</p>
+                    <div class="flex items-center">
+                        <img class="w-12 h-12 rounded-full mr-4" src="{% static 'assets/img/testmonial/testimonial-founder.png' %}" alt="Avatar of Client">
+                        <div>
+                            <p class="font-bold text-slate-900">Anjali Menon</p>
+                            <p class="text-sm text-slate-500">Event Planner (Client)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <p class="text-slate-700 mb-6">"I've found more consistent part-time work through SideCrew than anywhere else. The communication from the agent is always clear, and I get paid on time, every time."</p>
+                    <div class="flex items-center">
+                        <img class="w-12 h-12 rounded-full mr-4" src="{% static 'assets/img/testmonial/testimonial-founder-2.png' %}" alt="Avatar of Worker">
+                        <div>
+                            <p class="font-bold text-slate-900">Rahul Das</p>
+                            <p class="text-sm text-slate-500">Student (Worker)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <p class="text-slate-700 mb-6">"As an agent, the platform gives me the structure and tools I need to efficiently manage a large pool of workers and clients. It's a fantastic business opportunity."</p>
+                    <div class="flex items-center">
+                        <img class="w-12 h-12 rounded-full mr-4" src="{% static 'assets/img/testmonial/testimonial-founder-3.png' %}" alt="Avatar of Agent">
+                        <div>
+                            <p class="font-bold text-slate-900">David John</p>
+                            <p class="text-sm text-slate-500">Team Leader (Agent)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-blue-600 text-white">
+        <div class="container mx-auto px-6 py-20 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
+            <p class="text-lg md:text-xl text-blue-200 max-w-3xl mx-auto mb-8">Join the platform that's making part-time work more reliable and rewarding for everyone. Sign up today!</p>
+            <a href="{% url 'worker_register' %}" class="bg-white text-blue-600 font-bold px-8 py-4 rounded-lg hover:bg-slate-100 transition-colors text-lg">Create Your Account</a>
+        </div>
+    </section>
+
+{% endblock %}

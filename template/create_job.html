@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Post a New Job - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-2xl font-semibold text-slate-800">Post a New Job</h2>
+                    <p class="text-sm text-slate-600">Fill out the details below to find an agent.</p>
+                </div>
+
+                <form method="POST" class="p-6">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                                Job Title
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.title.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                                Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.description.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.client_pay_per_worker.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Client Pay (per worker)
+                                </label>
+                                <div class="relative">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <span class="text-slate-500 sm:text-sm">₹</span>
+                                    </div>
+                                    {{ form.client_pay_per_worker }}
+                                </div>
+                                {% if form.client_pay_per_worker.errors %}
+                                    <div class="mt-1 text-sm text-red-600">{{ form.client_pay_per_worker.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.workers_needed.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Workers Needed
+                                </label>
+                                {{ form.workers_needed }}
+                                {% if form.workers_needed.errors %}
+                                    <div class="mt-1 text-sm text-red-600">{{ form.workers_needed.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">
+                                Set Work Location
+                            </label>
+                            <p class="text-sm text-slate-500 mb-2">Click on the map to place a pin at the job location.</p>
+
+                            <div id="map" class="leaflet-container"></div>
+
+                            {{ form.location_address }}
+                            {{ form.location_latitude }}
+                            {{ form.location_longitude }}
+
+                            <div id="address-display" class="mt-2 p-3 bg-slate-100 rounded-md text-sm text-slate-700" style="display: none;">
+                                <strong>Selected Address:</strong> <span id="address-text"></span>
+                            </div>
+                            {% if form.location_latitude.errors or form.location_address.errors %}
+                             <div class="mt-1 text-sm text-red-600">Please select a location on the map.</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="block text-lg font-semibold text-slate-700 mb-3">Choose an Agent</label>
+
+                            <div id="agent-selection-container" class="space-y-4 rounded-lg border border-slate-200 p-4 min-h-[100px] max-h-60 overflow-y-auto">
+
+                                <p class="text-sm text-slate-500 italic">Please select a location on the map to find nearby agents.</p>
+
+                                </div>
+                        </div>
+                        </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-200 flex items-center justify-end">
+                        <button type="submit" class="w-full md:w-auto bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            Save and Invite Agent
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type='text'],
+    input[type='number'],
+    input[type='email'],
+    input[type='password'],
+    textarea {
+        display: block;
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1; /* slate-300 */
+        border-radius: 0.5rem; /* 8px */
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    input[type='text']:focus,
+    input[type='number']:focus,
+    textarea:focus {
+        border-color: #3b82f6; /* blue-600 */
+        box-shadow: 0 0 0 1px #3b82f6;
+        outline: none;
+    }
+    /* Specific padding for the 'Pay' field with '₹' */
+    input[name='client_pay_per_worker'] {
+        padding-left: 2.5rem; /* Make room for the '₹' symbol */
+    }
+    /* Hide the built-in Django form fields for location */
+    #id_location_address,
+    #id_location_latitude,
+    #id_location_longitude {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Initialize the map (centered on Kozhikode)
+    const map = L.map('map').setView([11.2588, 75.7804], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    let marker; // To store the map marker
+
+    // Get references to the hidden form fields
+    const addressInput = document.getElementById('id_location_address');
+    const latInput = document.getElementById('id_location_latitude');
+    const lngInput = document.getElementById('id_location_longitude');
+    const addressDisplay = document.getElementById('address-display');
+    const addressText = document.getElementById('address-text');
+
+    // --- NEW ---
+    // Get references for the new agent fetching logic
+    const agentContainer = document.getElementById('agent-selection-container');
+    const getAgentsUrl = "{% url 'get_agents_near' %}";
+    // --- END NEW ---
+
+
+    // 2. Handle map click
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        // Add/move the marker
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+
+        // Fill the hidden lat/lng fields
+        latInput.value = lat.toFixed(7);
+        lngInput.value = lng.toFixed(7);
+
+        // --- NEW ---
+        // Now that we have a location, fetch nearby agents
+        fetchNearbyAgents(lat, lng);
+        // --- END NEW ---
+
+        // 3. Reverse Geocoding (Get address from lat/lng)
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+
+        // Show loading state
+        addressText.innerText = 'Finding address...';
+        addressDisplay.style.display = 'block';
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.display_name || 'Address not found';
+
+                // Fill the hidden address field
+                addressInput.value = address;
+
+                // Show the address to the user
+                addressText.innerText = address;
+            })
+            .catch(err => {
+                console.log('Error fetching address:', err);
+                addressText.innerText = 'Could not find address. Please try again.';
+            });
+    });
+
+
+    // --- NEW ---
+    // 4. Function to fetch and display nearby agents
+    async function fetchNearbyAgents(lat, lng) {
+
+        // Show a loading message in the agent container
+        agentContainer.innerHTML = `<p class="text-sm text-slate-500 italic">Loading nearby agents...</p>`;
+
+        try {
+            // Call the API view we created
+            const response = await fetch(`${getAgentsUrl}?lat=${lat}&lng=${lng}`);
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+
+            // Clear the loading message
+            agentContainer.innerHTML = "";
+
+            // Always add the "Public Board" option first
+            agentContainer.innerHTML += `
+                <div class="flex items-center">
+                    <input id="agent-public" name="agent_selection" type="radio" value="public_board" class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500" checked>
+                    <label for="agent-public" class="ml-3 block text-sm font-medium text-slate-900">
+                        Post to Public Job Board
+                        <p class="text-xs text-slate-500">Any available agent can accept this job.</p>
+                    </label>
+                </div>
+            `;
+
+            if (data.agents && data.agents.length > 0) {
+                // We found agents! Build the radio buttons.
+                data.agents.forEach(agent => {
+                    agentContainer.innerHTML += `
+                        <div class="flex items-center">
+                            <input id="agent-${agent.id}" name="agent_selection" type="radio" value="${agent.id}" class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500">
+                            <label for="agent-${agent.id}" class="ml-3 block text-sm font-medium text-slate-900">
+                                ${agent.agency_name}
+                                <span class="ml-2 font-bold text-yellow-500">(${parseFloat(agent.rating).toFixed(1)} ★)</span>
+                                <p class="text-xs text-slate-500">${agent.name} - Approx. ${agent.distance} km away</p>
+                            </label>
+                        </div>
+                    `;
+                });
+
+            } else {
+                // No agents found, just show a message
+                agentContainer.innerHTML += `
+                    <p class="text-sm text-slate-500 italic">No agents found within 50km. Your job will be posted to the public board.</p>
+                `;
+            }
+
+        } catch (error) {
+            console.error("Error fetching agents:", error);
+            agentContainer.innerHTML = `<p class="text-sm text-red-500 italic">Error loading agents. Please try refreshing. Your job will post to the public board.</p>`;
+            // Still add the public board option on error
+                agentContainer.innerHTML += `
+                <div class="flex items-center">
+                    <input id="agent-public" name="agent_selection" type="radio" value="public_board" class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500" checked>
+                    <label for="agent-public" class="ml-3 block text-sm font-medium text-slate-900">
+                        Post to Public Job Board
+                        <p class="text-xs text-slate-500">Any available agent can accept this job.</p>
+                    </label>
+                </div>
+            `;
+        }
+    }
+    // --- END NEW ---
+
+});
+</script>
+{% endblock %}

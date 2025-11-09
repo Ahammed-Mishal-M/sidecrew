@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agent Dashboard - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg
+                            {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                            {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}
+                            {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                            {% if message.tags == 'info' %} bg-blue-100 text-blue-800 {% endif %}"
+                     role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                Welcome, {{ request.session.agent_name }}!
+            </h1>
+            <p class="text-lg text-slate-600">Review new jobs, manage applications, and see your active jobs.</p>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">Direct Job Invitations</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for job in direct_invites %}
+                    <li class="p-6 flex flex-col md:flex-row justify-between md:items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-green-700">{{ job.title }}</h3>
+                            <p class="text-sm text-slate-600 mt-1">
+                                Client: {{ job.client.name }}
+                                | Pay: ₹{{ job.client_pay_per_worker }}/worker | Need: {{ job.workers_needed }}
+                            </p>
+                            <p class="text-sm text-slate-500 mt-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block -mt-1 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                {{ job.location_address|truncatechars:70 }}
+                            </p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <a href="{% url 'accept_direct_invite' job_id=job.id %}" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
+                                Accept
+                            </a>
+                            <a href="{% url 'reject_direct_invite' job_id=job.id %}" class="ml-2 bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm">
+                                Reject
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        You have no new direct job invitations.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">Proof of Work Review</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="p-6">
+                    {% if pending_proofs %}
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-semibold text-red-700">Action Required</h3>
+                                <p class="text-slate-600">
+                                    You have <strong>{{ pending_proofs.count }} work proof{{ pending_proofs.count|pluralize }}</strong> to review.
+                                </p>
+                            </div>
+                            <a href="{% url 'agent_review_dashboard' %}" class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                Review Now
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-slate-500">There are no work proofs waiting for your review.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">Pending Worker Applications</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for app in pending_applications %}
+                    <li class="p-6 flex flex-col md:flex-row justify-between md:items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                {{ app.worker.name }}
+                                {% if app.worker.rating > 0 %}
+                                    <span class="text-sm font-bold text-yellow-500">({{ app.worker.rating|floatformat:1 }} ★)</span>
+                                {% endif %}
+                                <span class="text-base font-normal text-slate-600">applied for</span>
+                                {{ app.job_posting.title }}
+                            </h3>
+                            <p class="text-sm text-slate-500 mt-1">
+                                Skills: {{ app.worker.skills|default:"Not specified" }} | Phone: {{ app.worker.phone }}
+                            </p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <a href="{% url 'accept_application' app.id %}" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">Accept</a>
+                            <a href="{% url 'reject_application' app.id %}" class="ml-2 bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm">Reject</a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        You have no pending worker applications.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">New Jobs on the Board</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for job in new_invites %}
+                    <li class="p-6 flex flex-col md:flex-row justify-between md:items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700">{{ job.title }}</h3>
+                            <p class="text-sm text-slate-600 mt-1">
+                                Client: {{ job.client.name }}
+                                | Pay: ₹{{ job.client_pay_per_worker }}/worker | Need: {{ job.workers_needed }}
+                            </p>
+                            <p class="text-sm text-slate-500 mt-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block -mt-1 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                {{ job.location_address|truncatechars:70 }}
+                            </p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <a href="{% url 'accept_job' job_id=job.id %}" class="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
+                                Accept Job
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        There are no new jobs on the board.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">My Claimed Jobs (Ready to Post)</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for job in active_jobs %}
+                    <li class="p-6 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-800">{{ job.title }}</h3>
+                            <p class="text-sm text-slate-600 mt-1">Status: {{ job.get_status_display }}</p>
+                            <p class="text-sm text-slate-500 mt-1">Client: {{ job.client.name }}</p>
+                        </div>
+                        <div>
+                            <a href="{% url 'create_job_posting' job.id %}" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                Post to Workers
+                            </a>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        You have no claimed jobs that need to be posted.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">Posted & Filled Jobs</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for job in active_postings %}
+                    <li class="p-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-800">{{ job.title }}</h3>
+                                <p class="text-sm text-slate-600 mt-1">Client: {{ job.client.name }}</p>
+                                <p class="text-sm text-slate-600 mt-1">
+                                    <span class="font-medium">Client Payment:</span>
+                                    {% if job.client_payment_status == 'paid' %}
+                                        <span class="font-semibold text-green-600">Received</span>
+                                    {% else %}
+                                        <span class="font-semibold text-yellow-600">Pending</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            {% if job.status == 'FILLED' %}
+                            <span class="bg-indigo-100 text-indigo-800 font-semibold px-4 py-2 rounded-lg text-sm">
+                                Filled
+                            </span>
+                            {% elif job.status == 'OPEN' %}
+                            <span class="bg-blue-100 text-blue-800 font-semibold px-4 py-2 rounded-lg text-sm">
+                                Open for Applications
+                            </span>
+                            {% endif %}
+                            </div>
+                        <div class="mt-4">
+                            <h4 class="text-sm font-semibold text-slate-700">Accepted Workers:</h4>
+                            <ul class="list-disc list-inside mt-2 text-sm text-slate-600 space-y-2">
+                                {% with job.postings.all.0.applications.all as applications %}
+                                    {% for app in applications %}
+                                        {% if app.status == 'ACCEPTED' %}
+                                            <li>
+                                                <strong>{{ app.worker.name }}</strong> ({{ app.worker.phone }})
+                                                {% if app.worker.rating > 0 %}<span class="text-xs font-bold text-yellow-500"> ({{ app.worker.rating|floatformat:1 }} ★)</span>{% endif %}
+                                                <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">Awaiting Proof</span>
+                                            </li>
+                                        {% elif app.status == 'PROOF_SUBMITTED' %}
+                                            <li>
+                                                <strong>{{ app.worker.name }}</strong> ({{ app.worker.phone }})
+                                                {% if app.worker.rating > 0 %}<span class="text-xs font-bold text-yellow-500"> ({{ app.worker.rating|floatformat:1 }} ★)</span>{% endif %}
+                                                <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Proof in Review</span>
+                                            </li>
+                                        {% elif app.status == 'PROOF_REJECTED' %}
+                                            <li>
+                                                <strong>{{ app.worker.name }}</strong> ({{ app.worker.phone }})
+                                                {% if app.worker.rating > 0 %}<span class="text-xs font-bold text-yellow-500"> ({{ app.worker.rating|floatformat:1 }} ★)</span>{% endif %}
+                                                <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-800">Proof Rejected</span>
+                                            </li>
+                                        {% endif %}
+                                    {% empty %}
+                                        <li class="text-slate-500 italic">No applications received yet.</li>
+                                    {% endfor %}
+                                {% endwith %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        You have no active job postings.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">Completed Jobs</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for job in completed_jobs %}
+                    <li class="p-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-800">{{ job.title }}</h3>
+                                <p class="text-sm text-slate-600 mt-1">Client: {{ job.client.name }}</p>
+                                <p class="text-sm text-slate-600 mt-1">
+                                    <span class="font-medium">Client Payment:</span>
+                                    {% if job.client_payment_status == 'paid' %}
+                                        <span class="font-semibold text-green-600">Received</span>
+                                    {% else %}
+                                        <span class="font-semibold text-yellow-600">Pending</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <span class="bg-green-100 text-green-800 font-semibold px-4 py-2 rounded-lg text-sm">
+                                Completed
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-sm font-semibold text-slate-700">Completed Workers:</h4>
+                            <ul class="list-disc list-inside mt-2 text-sm text-slate-600 space-y-2">
+                                {% with job.postings.all.0.applications.all as applications %}
+                                    {% for app in applications %}
+                                        {% if app.status == 'COMPLETED' %}
+                                             <li>
+                                                <strong>{{ app.worker.name }}</strong> ({{ app.worker.phone }})
+                                                {% if app.worker.rating > 0 %}<span class="text-xs font-bold text-yellow-500"> ({{ app.worker.rating|floatformat:1 }} ★)</span>{% endif %}
+                                                <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">Completed</span>
+
+                                                {% if app.worker_payment_status == 'paid' %}
+                                                    <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">
+                                                        Payment: Paid
+                                                    </span>
+                                                {% else %}
+                                                    <span class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
+                                                        Payment: Unpaid
+                                                    </span>
+                                                    <form action="{% url 'agent_mark_worker_paid' app.id %}" method="POST" class="inline ml-2">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="text-xs text-white font-semibold bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded-md">
+                                                            Mark as Paid
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+
+                                                {% if app.agent_rating_for_worker %}
+                                                    <span class="ml-2 text-xs text-slate-500">You rated:
+                                                        <span class="font-bold text-yellow-500">{{ app.agent_rating_for_worker }} ★</span>
+                                                    </span>
+                                                {% else %}
+                                                    <form action="{% url 'agent_rate_worker' app.id %}" method="POST" class="inline ml-2">
+                                                        {% csrf_token %}
+                                                        <select name="rating" id="rating-app-{{ app.id }}" class="rounded border-slate-300 text-xs py-0.5 shadow-sm focus:border-blue-500 focus:ring-blue-500" style="padding-right: 1.5rem;">
+                                                            <option value="">Rate</option>
+                                                            <option value="1">1★</option>
+                                                            <option value="2">2★</option>
+                                                            <option value="3">3★</option>
+                                                            <option value="4">4★</option>
+                                                            <option value="5">5★</option>
+                                                        </select>
+                                                        <button type="submit" class="text-xs text-white font-semibold bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded-md shadow-sm">Submit</button>
+                                                    </form>
+                                                {% endif %}
+                                             </li>
+                                        {% endif %}
+                                    {% empty %}
+                                        <li class="text-slate-500 italic">No workers completed this job.</li>
+                                    {% endfor %}
+                                {% endwith %}
+                            </ul>
+                            </div>
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        You have no completed jobs.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

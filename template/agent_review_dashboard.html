@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Work Proofs - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg
+                        {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                        {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}
+                        {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                        {% if message.tags == 'info' %} bg-blue-100 text-blue-800 {% endif %}"
+                 role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-slate-900">
+                Pending Work Proofs
+            </h1>
+            <a href="{% url 'agent_home' %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+
+        <div class="space-y-8">
+            {% for proof in proofs %}
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-slate-800">{{ proof.application.job_posting.title }}</h3>
+                    <p class="text-sm text-slate-500 mb-4">
+                        Submitted by: <strong>{{ proof.application.worker.name }}</strong> on {{ proof.uploaded_at|date:"d M Y, P" }}
+                    </p>
+
+                    <a href="{{ proof.image.url }}" target="_blank" class="block">
+                        <img src="{{ proof.image.url }}" alt="Work Proof" class="rounded-lg w-full object-cover aspect-video border border-slate-200">
+                    </a>
+
+                    <div class="mt-4">
+                        <h4 class="text-sm font-semibold text-slate-700">Submitted Location:</h4>
+                        <a href="https://www.openstreetmap.org/?mlat={{ proof.latitude }}&mlon={{ proof.longitude }}#map=16/{{ proof.latitude }}/{{ proof.longitude }}" 
+                           target="_blank"
+                           class="text-blue-600 hover:text-blue-800 text-sm transition-colors">
+                            View on OpenStreetMap (Lat: {{ proof.latitude }}, Lng: {{ proof.longitude }})
+                        </a>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 border-t md:border-t-0 md:border-l border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Review & Actions</h3>
+                    
+                    <form action="{% url 'agent_approve_proof' proof.id %}" method="POST" class="mb-4">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full bg-green-500 text-white font-semibold px-5 py-3 rounded-lg hover:bg-green-600 transition-colors">
+                            Approve
+                        </button>
+                    </form>
+
+                    <form action="{% url 'agent_reject_proof' proof.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label for="remarks-{{ proof.id }}" class="block text-sm font-medium text-slate-700">Reason for Rejection (Required)</label>
+                            <textarea name="remarks" id="remarks-{{ proof.id }}" rows="3" required 
+                                      class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"></textarea>
+Other                        </div>
+                        <button type="submit" class="w-full bg-red-500 text-white font-semibold px-5 py-3 rounded-lg hover:bg-red-600 transition-colors">
+                            Reject
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="bg-white shadow-lg rounded-lg p-10 text-center">
+                <h3 class="text-xl font-semibold text-slate-800">All Clear!</h3>
+                <p class="text-slate-500 mt-2">There are no pending work proofs to review.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

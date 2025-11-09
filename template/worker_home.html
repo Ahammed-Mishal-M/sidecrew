@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Worker Dashboard - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg
+                            {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                            {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}
+                            {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                            {% if message.tags == 'info' %} bg-blue-100 text-blue-800 {% endif %}"
+                     role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                Welcome, {{ request.session.worker_name }}!
+            </h1>
+            <p class="text-lg text-slate-600">Find new jobs or check on your application status.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2">
+                <h2 class="text-2xl font-semibold text-slate-800 mb-4">Available Jobs</h2>
+
+                <div class="space-y-6">
+                    {% for job in available_jobs %}
+                    <div class="bg-white shadow-lg rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-blue-700">{{ job.title }}</h3>
+                                    <p class="text-sm text-slate-500 mt-1">
+                                        Posted by: <strong>{{ job.agent.agency_name }}</strong>
+                                    </p>
+                                </div>
+                                <span class="text-xl font-bold text-green-600">
+                                    ₹{{ job.worker_pay_rate }}
+                                </span>
+                            </div>
+
+                            <div class="text-sm text-slate-600 mt-2 font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block -mt-1 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                <span>{{ job.job.location_address|truncatechars:70 }}</span>
+
+                                <button type="button" class="show-map-btn ml-2 text-blue-600 font-semibold"
+                                        data-lat="{{ job.job.location_latitude }}"
+                                        data-lng="{{ job.job.location_longitude }}"
+                                        data-map-id="map-{{ job.id }}">
+                                    (Show Map)
+                                </button>
+                            </div>
+
+                            <div id="map-{{ job.id }}" class="leaflet-container mt-2" style="height: 250px; display: none;"></div>
+                            <p class="text-slate-700 mt-4">
+                                {{ job.description|truncatewords:40|linebreaksbr }}
+                            </p>
+                            <div class="mt-5 text-right">
+                                <a href="{% url 'apply_for_job' job.id %}" class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Apply Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="bg-white shadow-lg rounded-lg p-10 text-center">
+                        <p class="text-slate-500">There are no available jobs right now. Please check back later.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <h2 class="text-2xl font-semibold text-slate-800 mb-4">My Applications</h2>
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <ul class="divide-y divide-slate-200">
+
+                        {% for app in my_applications %}
+                        <li class="p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="font-semibold text-slate-800">{{ app.job_posting.title }}</p>
+
+                                {% if app.status == 'PENDING' %}
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
+                                    Pending Agent
+                                </span>
+                                {% elif app.status == 'ACCEPTED' %}
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                    Action Required
+                                </span>
+                                {% elif app.status == 'REJECTED' %}
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-100 text-red-800">
+                                    Rejected
+                                </span>
+                                {% elif app.status == 'PROOF_SUBMITTED' %}
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                                    Proof in Review
+                                </span>
+                                {% elif app.status == 'PROOF_REJECTED' %}
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-100 text-red-800">
+                                    Resubmit Proof
+                                </span>
+                                {% elif app.status == 'COMPLETED' %}
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-100 text-green-800">
+                                    Completed
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-slate-500 mt-1">
+                                Applied on: {{ app.applied_at|date:"d M Y" }}
+                            </p>
+
+                            {% if app.status == 'COMPLETED' %}
+                            <p class="text-sm font-medium mt-2">
+                                Payment Status:
+                                {% if app.worker_payment_status == 'paid' %}
+                                    <span class="font-semibold text-green-600">Paid</span>
+                                {% else %}
+                                    <span class="font-semibold text-yellow-600">Processing</span>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            {% if app.status == 'ACCEPTED' %}
+                            <div class="mt-3 text-right">
+                                <a href="{% url 'worker_upload_proof' app.id %}" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                    Upload Proof of Work
+                                </a>
+                            </div>
+                            {% elif app.status == 'PROOF_REJECTED' %}
+                            <div class="mt-3 p-3 rounded-md bg-red-50 border border-red-200">
+                                <p class="text-sm text-red-700"><strong>Reason:</strong> {{ app.work_proof.agent_remarks }}</p>
+                                <div class="mt-2 text-right">
+                                    <a href="{% url 'worker_upload_proof' app.id %}" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                        Resubmit Proof
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="p-6 text-center text-slate-500">
+                            You have not applied for any jobs.
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const mapButtons = document.querySelectorAll('.show-map-btn');
+    const initializedMaps = {}; // To prevent re-loading maps
+
+    mapButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const lat = this.dataset.lat;
+            const lng = this.dataset.lng;
+            const mapId = this.dataset.mapId;
+            const mapContainer = document.getElementById(mapId);
+
+            // Do nothing if coordinates are missing
+            if (!lat || !lng || lat === 'None' || lng === 'None') {
+                this.innerText = '(Location not set)';
+                this.disabled = true;
+                return;
+            }
+
+            // Toggle map visibility
+            if (mapContainer.style.display === 'none') {
+                mapContainer.style.display = 'block';
+
+                // Initialize map only once
+                if (!initializedMaps[mapId]) {
+                    const map = L.map(mapId).setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    L.marker([lat, lng]).addTo(map);
+                    initializedMaps[mapId] = map;
+                }
+                this.innerText = '(Hide Map)';
+            } else {
+                mapContainer.style.display = 'none';
+                this.innerText = '(Show Map)';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

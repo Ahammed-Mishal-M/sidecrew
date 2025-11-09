@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Agent Registration - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 py-12 sm:py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white p-8 rounded-2xl shadow-lg">
+
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-900">Become a SideCrew Agent</h2>
+                <p class="text-slate-500 mt-2">Manage your own crew and connect clients with reliable workers.</p>
+            </div>
+            
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-md text-sm {% if message.tags == 'error' %} bg-red-100 border border-red-400 text-red-700 {% else %} bg-green-100 border border-green-400 text-green-700 {% endif %}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'agent_register' %}" class="space-y-6">
+                {% csrf_token %}
+
+                {% with input_classes="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" file_input_classes="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" %}
+
+                <div>
+                    <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                    <input type="text" name="name" id="name" class="{{ input_classes }}" placeholder="e.g., Jane Smith" value="{{ values.name }}" required>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                    <input type="email" name="email" id="email" class="{{ input_classes }}" placeholder="you@example.com" value="{{ values.email }}" required>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                        <input type="password" name="password" id="password" class="{{ input_classes }}" placeholder="••••••••" required>
+                    </div>
+                    <div>
+                        <label for="confirm_password" class="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+                        <input type="password" name="confirm_password" id="confirm_password" class="{{ input_classes }}" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                        <input type="tel" name="phone" id="phone" class="{{ input_classes }}" placeholder="+91 98765 43210" value="{{ values.phone }}" required>
+                    </div>
+                    <div>
+                        <label for="agency_name" class="block text-sm font-medium text-slate-700 mb-1">Agency Name</label>
+                        <input type="text" name="agency_name" id="agency_name" class="{{ input_classes }}" placeholder="e.g., Smith's Crew" value="{{ values.agency_name }}" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Agency Location</label>
+                    <p class="text-sm text-slate-500 mb-2">Click on the map to set your primary business location.</p>
+
+                    <div id="map" class="h-64 w-full rounded-lg leaflet-container"></div>
+
+                    <div id="address-display" class="mt-2 p-3 bg-slate-100 rounded-md text-sm text-slate-700" style="display: none;">
+                        <strong>Selected Address:</strong> <span id="address-text"></span>
+                    </div>
+
+                    <textarea name="address" id="id_address" rows="3" class="{{ input_classes }}" required style="display:none;">{{ values.address }}</textarea>
+
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ values.latitude }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ values.longitude }}">
+                </div>
+                <div>
+                     <label for="profile_pic" class="block text-sm font-medium text-slate-700 mb-1">Profile Picture (Optional)</label>
+                     <input type="file" name="profile_pic" id="profile_pic" class="{{ file_input_classes }}" accept="image/*">
+                </div>
+
+                {% endwith %}
+
+                <div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Create Agent Account
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-500">
+                    Already have an agent account? <a href="{% url 'agent_login' %}" class="font-medium text-blue-600 hover:text-blue-500">Log in here</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Initialize the map (centered on Kozhikode)
+    const map = L.map('map').setView([11.2588, 75.7804], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    let marker;
+
+    // Get references to the hidden form fields
+    const addressInput = document.getElementById('id_address');
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    const addressDisplay = document.getElementById('address-display');
+    const addressText = document.getElementById('address-text');
+
+    // 2. Handle map click
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        // Add/move the marker
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+
+        // Fill the hidden lat/lng fields
+        latInput.value = lat.toFixed(7);
+        lngInput.value = lng.toFixed(7);
+
+        // 3. Reverse Geocoding
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        addressText.innerText = 'Finding address...';
+        addressDisplay.style.display = 'block';
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.display_name || 'Address not found';
+                addressInput.value = address; // Fill hidden textarea
+                addressText.innerText = address; // Fill display span
+            })
+            .catch(err => {
+                console.log('Error fetching address:', err);
+                addressText.innerText = 'Could not find address. Please try again.';
+            });
+    });
+});
+</script>
+{% endblock %}

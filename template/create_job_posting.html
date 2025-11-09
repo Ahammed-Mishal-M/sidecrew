@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Job Posting - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="text-2xl font-semibold text-slate-800">Post Job to Workers</h2>
+                </div>
+
+                <div class="p-6">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="mb-4 p-4 rounded-lg
+                                        {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                                        {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}
+                                        {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                                        {% if message.tags == 'info' %} bg-blue-100 text-blue-800 {% endif %}"
+                                 role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h5 class="text-lg font-bold text-blue-800">Original Client Request</h5>
+                        <ul class="mt-2 space-y-1 text-sm text-blue-700">
+                            <li><strong>Title:</strong> {{ original_job.title }}</li>
+                            <li><strong>Client Offer (per worker):</strong> ₹{{ original_job.client_pay_per_worker }}</li>
+                            <li><strong>Workers Needed:</strong> {{ original_job.workers_needed }}</li>
+                        </ul>
+                        <hr class="my-3 border-blue-200">
+                        <p class="text-sm text-blue-800">
+                            Your commission will be the difference between the client's offer and the pay rate you set below.
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{% url 'create_job_posting' original_job.id %}">
+                        {% csrf_token %}
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="id_title" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Job Title (for workers)
+                                </label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="mt-1 text-sm text-red-600">{{ form.title.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_description" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Description (for workers)
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="mt-1 text-sm text-red-600">{{ form.description.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="id_worker_pay_rate" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Pay Rate for Worker (e.g., ₹450)
+                                </label>
+                                {{ form.worker_pay_rate }}
+                                {% if form.worker_pay_rate.errors %}
+                                    <div class="mt-1 text-sm text-red-600">{{ form.worker_pay_rate.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
+                            <a href="{% url 'agent_home' %}" class="bg-slate-100 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors text-sm">
+                                Cancel
+                            </a>
+                            <button type="submit" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                Post Job to Workers
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Jobs - Admin{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-slate-900">Manage All Jobs</h1>
+            <a href="{% url 'admin_home' %}" class="text-sm text-blue-600 hover:underline">&larr; Back to Dashboard</a>
+        </div>
+
+        {% include 'partials/messages.html' %}
+
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-4 text-sm font-semibold text-slate-600">Job Title</th>
+                            <th class="p-4 text-sm font-semibold text-slate-600">Client</th>
+                            <th class="p-4 text-sm font-semibold text-slate-600">Agent</th>
+                            <th class="p-4 text-sm font-semibold text-slate-600">Status</th>
+                            <th class="p-4 text-sm font-semibold text-slate-600 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for job in jobs %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 text-sm text-slate-700">
+                                <span class="font-medium">{{ job.title }}</span>
+                                <span class="block text-xs text-slate-500">Posted: {{ job.created_at|date:"d M Y" }}</span>
+                            </td>
+                            <td class="p-4 text-sm text-slate-700">{{ job.client.name }}</td>
+                            <td class="p-4 text-sm text-slate-700">{{ job.agent.agency_name|default:"-" }}</td>
+                            <td class="p-4 text-sm">
+                                <span class="text-xs font-medium px-2.5 py-1 rounded-full
+                                    {% if job.status == 'COMPLETED' %} bg-green-100 text-green-800
+                                    {% elif job.status == 'FILLED' %} bg-indigo-100 text-indigo-800
+                                    {% elif job.status == 'OPEN' %} bg-blue-100 text-blue-800
+                                    {% elif job.status == 'SEEKING_AGENT' %} bg-yellow-100 text-yellow-800
+                                    {% elif job.status == 'PENDING_AGENT' %} bg-orange-100 text-orange-800
+                                    {% endif %}">
+                                    {{ job.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="p-4 text-sm text-right">
+                                <a href="{% url 'admin_job_detail' job.id %}" class="bg-blue-600 text-white font-semibold px-3 py-1 rounded-lg hover:bg-blue-700 text-xs">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-slate-500 italic">There are no jobs in the system.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

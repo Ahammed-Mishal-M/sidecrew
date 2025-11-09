@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Invite Agent - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                    Invite an Agent for "{{ job.title }}"
+                </h1>
+                <p class="text-lg text-slate-600">Choose an approved agent to manage this job.</p>
+            </div>
+
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <form method="POST">
+                    {% csrf_token %}
+                    <ul class="divide-y divide-slate-200">
+                        {% for agent in agents %}
+                        <li class="p-6">
+                            <label for="agent-{{ agent.id }}" class="flex items-center cursor-pointer">
+                                <input type.="radio" name="agent" value="{{ agent.id }}" id="agent-{{ agent.id }}" class="h-5 w-5 text-blue-600 border-slate-300 focus:ring-blue-500">
+                                <div class="ml-4">
+                                    <span class="text-lg font-medium text-slate-800">{{ agent.agency_name }}</span>
+                                    <span class="block text-sm text-slate-500">{{ agent.name }}</span>
+                                </div>
+                            </label>
+                        </li>
+                        {% empty %}
+                        <li class="p-6 text-center text-slate-500">
+                            No approved agents are available right now. Please check back later.
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    {% if agents %}
+                    <div class="p-6 bg-slate-50 border-t border-slate-200">
+                        <button type="submit" class="w-full bg-blue-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            Send Invitation
+                        </button>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

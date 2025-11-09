@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Work Proof - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+        <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8">
+
+            <h2 class="text-3xl font-bold text-slate-900 mb-2">Upload Work Proof</h2>
+            <p class="text-lg text-slate-600 mb-4">
+                For <strong>{{ application.job_posting.title }}</strong>
+            </p>
+            <p class="text-slate-700 mb-6">
+                Please upload a photo from the work location. We will capture your current
+                geolocation to verify you are on-site.
+            </p>
+
+            {% if proof and proof.status == 'REJECTED' %}
+                <div class="mb-6 p-4 rounded-lg bg-red-100 text-red-800" role="alert">
+                    <strong class="font-bold">Your previous submission was rejected.</strong>
+                    <p class="mt-1">Reason: {{ proof.agent_remarks }}</p>
+                    <p class="mt-2">Please upload a new photo correcting the issue.</p>
+                </div>
+            {% endif %}
+
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                    <div class="mb-4 p-4 rounded-lg bg-red-100 text-red-800" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <div id="error-box" class="mb-4 p-4 rounded-lg bg-red-100 text-red-800 hidden" role="alert"></div>
+
+            <form id="proofForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
+                
+                <div class="mb-6">
+                    <label for="image" class="block text-sm font-medium text-slate-700 mb-2">Upload Photo:</label>
+                    <input type="file" name="image" id="image" accept="image/*" required
+                           class="block w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100">
+                </div>
+                
+                <button type="submit" id="submitBtn" 
+                        class="w-full bg-blue-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400">
+                    Submit Proof
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('proofForm').addEventListener('submit', function(event) {
+    event.preventDefault(); 
+    
+    var form = this;
+    var submitButton = document.getElementById('submitBtn');
+    var errorBox = document.getElementById('error-box');
+
+    submitButton.disabled = true;
+    submitButton.innerText = 'Getting your location...';
+    errorBox.classList.add('hidden');
+
+    var imageInput = document.getElementById('image');
+    if (!imageInput.files || imageInput.files.length === 0) {
+        showError('Please select a photo to upload.');
+        return;
+    }
+
+    if (!navigator.geolocation) {
+        showError('Geolocation is not supported by your browser. Please use a different browser.');
+        return;
+    }
+
+    function success(position) {
+        document.getElementById('latitude').value = position.coords.latitude;
+        document.getElementById('longitude').value = position.coords.longitude;
+        
+        submitButton.innerText = 'Uploading...';
+        form.submit();
+    }
+
+    function error() {
+        showError('Unable to retrieve your location. Please enable location services in your browser or phone settings and try again.');
+    }
+
+    function showError(message) {
+        errorBox.innerText = message;
+        errorBox.classList.remove('hidden');
+        submitButton.disabled = false;
+        submitButton.innerText = 'Submit Proof';
+    }
+
+    navigator.geolocation.getCurrentPosition(success, error, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Job Details - Admin{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10 max-w-5xl">
+        
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">{{ job.title }}</h1>
+                <p class="text-lg text-slate-600">Job #{{ job.id }} Details</p>
+            </div>
+            <a href="{% url 'admin_manage_jobs' %}" class="text-sm text-blue-600 hover:underline">&larr; Back to Job List</a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4">Job Information</h3>
+                        <div class="space-y-2">
+                            <p class="text-slate-700"><strong class="text-slate-600">Description:</strong> {{ job.description|linebreaksbr }}</p>
+                            <p class="text-slate-700"><strong class="text-slate-600">Location:</strong> {{ job.location_address|default:"N/A" }}</p>
+                            <p class="text-slate-700"><strong class="text-slate-600">Pay:</strong> ₹{{ job.client_pay_per_worker }} / worker</p>
+                            <p class="text-slate-700"><strong class="text-slate-600">Workers Needed:</strong> {{ job.workers_needed }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4">Worker Applications</h3>
+                        <ul class="divide-y divide-slate-200">
+                            {% for app in applications %}
+                                <li class="py-3">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="font-medium text-slate-900">{{ app.worker.name }}</to>
+                                            <p class="text-sm text-slate-500">{{ app.worker.email }} | {{ app.worker.phone }}</p>
+                                        </div>
+                                        <span class="text-xs font-medium px-2.5 py-1 rounded-full
+                                            {% if app.status == 'COMPLETED' %} bg-green-100 text-green-800
+                                            {% elif app.status == 'ACCEPTED' %} bg-blue-100 text-blue-800
+                                            {% elif app.status == 'PROOF_SUBMITTED' %} bg-indigo-100 text-indigo-800
+                                            {% elif app.status == 'PENDING' %} bg-yellow-100 text-yellow-800
+                                            {% elif app.status == 'REJECTED' or app.status == 'PROOF_REJECTED' %} bg-red-100 text-red-800
+                                            {% endif %}">
+                                            {{ app.get_status_display }}
+                                        </span>
+                                    </div>
+                                </li>
+                            {% empty %}
+                                <li class="py-3 text-center text-slate-500 italic">No applications found for this job.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden p-6">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-4">Status</h3>
+                    <p class="mb-2">
+                        <strong class="text-slate-600">Job Status:</strong>
+                        <span class="text-sm font-medium px-2.5 py-1 rounded-full
+                            {% if job.status == 'COMPLETED' %} bg-green-100 text-green-800
+                            {% elif job.status == 'FILLED' %} bg-indigo-100 text-indigo-800
+                            {% elif job.status == 'OPEN' %} bg-blue-100 text-blue-800
+                            {% elif job.status == 'SEEKING_AGENT' %} bg-yellow-100 text-yellow-800
+                            {% elif job.status == 'PENDING_AGENT' %} bg-orange-100 text-orange-800
+                            {% endif %}">
+                            {{ job.get_status_display }}
+                        </span>
+                    </p>
+                    <p>
+                        <strong class="text-slate-600">Client Payment:</strong>
+                        <span class="font-bold 
+                            {% if job.client_payment_status == 'paid' %} text-green-600
+                            {% elif job.client_payment_status == 'failed' %} text-red-600
+                            {% else %} text-yellow-600
+                            {% endif %}">
+                            {{ job.get_client_payment_status_display }}
+                        </span>
+                    </p>
+                </div>
+                
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden p-6">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-4">Client</h3>
+                    <p class="font-medium text-slate-900">{{ job.client.name }}</p>
+                    <p class_=("text-sm text-slate-600")>{{ job.client.company_name }}</p>
+                    <p class="text-sm text-slate-500 mt-1">{{ job.client.email }}</p>
+                    <p class="text-sm text-slate-500">{{ job.client.phone }}</p>
+                </div>
+                
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden p-6">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-4">Agent</h3>
+                    {% if job.agent %}
+                        <p class="font-medium text-slate-900">{{ job.agent.name }}</p>
+                        <p class="text-sm text-slate-600">{{ job.agent.agency_name }}</p>
+                        <p class="text-sm text-slate-500 mt-1">{{ job.agent.email }}</p>
+                        <p class="text-sm text-slate-500">{{ job.agent.phone }}</p>
+                    {% else %}
+                        <p class="text-slate-500 italic">No agent assigned.</p>
+                    {% endif %}
+                </div>
+
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden border border-red-300">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-red-700 mb-4">Admin Actions</h3>
+                        <p class="text-sm text-slate-600 mb-4">This will permanently delete the job, all its postings, and all related applications. This cannot be undone.</p>
+                        <form action="{% url 'admin_delete_job' job.id %}" method="POST" onsubmit="return confirm('FINAL WARNING: Are you sure you want to permanently delete this job?');">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full bg-red-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-red-700">
+                                Delete This Job
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

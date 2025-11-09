@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Workers - SideCrew{% endblock %}
+
+{% block styles %}
+{# We don't need the hero-bg style for this page.
+   All other styles from base.html will still apply. #}
+{% endblock %}
+
+
+{% block content %}
+
+    <section class="py-20 bg-slate-50">
+        <div class="container mx-auto px-6">
+            
+            {% include 'partials/messages.html' %} <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">Manage Workers</h2>
+                <p class="mt-4 text-lg text-slate-600">
+                    Approve, reject, or delete worker accounts.
+                </p>
+                <div class="mt-6">
+                    <a href="{% url 'admin_home' %}"
+                       class="text-blue-600 font-medium hover:text-blue-800 transition-colors">
+                       &larr; Back to Admin Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                <table class="w-full min-w-max">
+                  <thead class="bg-slate-100">
+                    <tr>
+                      <th class="text-left text-slate-600 font-semibold p-4">Name</th>
+                      <th class="text-left text-slate-600 font-semibold p-4">Email</th>
+                      <th class="text-left text-slate-600 font-semibold p-4">Phone Number</th>
+                      <th class="text-left text-slate-600 font-semibold p-4">Status</th>
+                      <th class="text-left text-slate-600 font-semibold p-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+
+                    {% for worker in workers %}
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-4 font-medium text-slate-900">{{ worker.name }}</td>
+                      <td class="p-4 text-slate-700">{{ worker.email }}</td>
+                      <td class="p-4 text-slate-700">{{ worker.phone|default:"N/A" }}</td>
+                      <td class="p-4">
+
+                        {# --- STYLED STATUS --- #}
+                        {% if worker.status == 'pending' %}
+                            <span class="font-semibold text-orange-600">{{ worker.get_status_display }}</span>
+                        {% elif worker.status == 'approved' %}
+                            <span class="font-semibold text-green-600">{{ worker.get_status_display }}</span>
+                        {% elif worker.status == 'rejected' %}
+                            <span class="font-semibold text-red-600">{{ worker.get_status_display }}</span>
+                        {% endif %}
+
+                      </td>
+                      <td class="p-4 space-x-2 whitespace-nowrap">
+
+                        {# --- SECURE POST BUTTONS --- #}
+                        {% if worker.status == 'pending' %}
+                          <form action="{% url 'approve_worker' worker.pk %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded-md text-sm transition-colors">Approve</button>
+                          </form>
+                          <form action="{% url 'reject_worker' worker.pk %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-medium py-1 px-3 rounded-md text-sm transition-colors">Reject</button>
+                          </form>
+
+                        {% elif worker.status == 'rejected' %}
+                          <form action="{% url 'approve_worker' worker.pk %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded-md text-sm transition-colors">Re-Approve</button>
+                          </form>
+
+                        {% elif worker.status == 'approved' %}
+                          <form action="{% url 'reject_worker' worker.pk %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-medium py-1 px-3 rounded-md text-sm transition-colors">Reject</button>
+                          </form>
+                        {% endif %}
+
+                        <form action="{% url 'delete_worker' worker.pk %}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete {{ worker.name }}?')">
+                           {% csrf_token %}
+                           <button type="submit" class="inline-block bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-10 text-slate-500">
+                            No workers found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                  </tbody>
+                </table>
+            </div>
+            
+        </div>
+    </section>
+
+{% endblock %}

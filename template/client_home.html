@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Client Dashboard - SideCrew{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-6 py-10">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg
+                            {% if message.tags == 'success' %} bg-green-100 text-green-800 {% endif %}
+                            {% if message.tags == 'error' %} bg-red-100 text-red-800 {% endif %}
+                            {% if message.tags == 'warning' %} bg-yellow-100 text-yellow-800 {% endif %}
+                            {% if message.tags == 'info' %} bg-blue-100 text-blue-800 {% endif %}"
+                     role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                    Welcome, {{ request.session.client_name }}!
+                </h1>
+                <p class="text-lg text-slate-600">Here are the jobs you've posted.</p>
+            </div>
+            <a href="{% url 'create_job' %}" class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                + Post a New Job
+            </a>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-semibold text-slate-800 mb-4">My Job Postings</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <ul class="divide-y divide-slate-200">
+                    {% for job in jobs %}
+                    <li class="p-6">
+                        <div class="flex flex-col md:flex-row justify-between md:items-start">
+                            <div>
+                                <h3 class="text-xl font-semibold text-blue-700">{{ job.title }}</h3>
+                                <p class="text-sm text-slate-600 mt-2">
+                                    <span class="font-medium">Pay:</span> ₹{{ job.client_pay_per_worker }}/worker
+                                    <span class="mx-2">|</span>
+                                    <span class="font-medium">Need:</span> {{ job.workers_needed }} worker{{ job.workers_needed|pluralize }}
+                                </p>
+                                <p class="text-sm text-slate-500 mt-1">
+                                    <span class="font-medium">Location:</span> {{ job.location_address|default:"Not specified" }}
+                                </p>
+                                <p class="text-sm text-slate-500 mt-1">
+                                    <span class="font-medium">Posted:</span> {{ job.created_at|date:"d M Y" }}
+                                </p>
+                                <p class="text-sm text-slate-500 mt-1">
+                                    <span class="font-medium">Agent:</span>
+                                    {% if job.agent %}
+                                        {{ job.agent.agency_name }}
+                                        {% if job.agent.rating > 0 %}
+                                            <span class="text-xs font-bold text-yellow-500">({{ job.agent.rating|floatformat:1 }} ★)</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-slate-400 italic">None (Seeking Agent)</span>
+                                    {% endif %}
+                                </p>
+
+                                <p class="text-sm text-slate-500 mt-1">
+                                    <span class="font-medium">Payment to Agent:</span>
+                                    {% if job.client_payment_status == 'paid' %}
+                                        <span class="font-bold text-green-600">Paid</span>
+                                    {% elif job.client_payment_status == 'failed' %}
+                                        <span class="font-bold text-red-600">Failed</span>
+                                    {% else %}
+                                        <span class="font-bold text-yellow-600">Pending</span>
+                                    {% endif %}
+                                </p>
+
+                                {% if job.status == 'COMPLETED' %}
+                                    {% if job.client_rating_for_agent %}
+                                        <p class="text-sm text-slate-500 mt-2">
+                                            <span class="font-medium">Your Rating:</span>
+                                            <span class="font-bold text-yellow-500">{{ job.client_rating_for_agent }} ★</span>
+                                        </p>
+                                    {% else %}
+                                        <form action="{% url 'client_rate_agent' job.id %}" method="POST" class="mt-3">
+                                            {% csrf_token %}
+                                            <label for="rating-{{ job.id }}" class="text-sm font-medium text-slate-700">Rate This Agent:</label>
+                                            <div class="flex items-center mt-1">
+                                                <select name="rating" id="rating-{{ job.id }}" class="rounded border-slate-300 text-sm py-1 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option value="">-- Select --</option>
+                                                    <option value="1">1 ★ Poor</option>
+                                                    <option value="2">2 ★ Fair</option>
+                                                    <option value="3">3 ★ Good</option>
+                                                    <option value="4">4 ★ Very Good</option>
+                                                    <option value="5">5 ★ Excellent</option>
+                                                </select>
+                                                <button type="submit" class="text-xs text-white font-semibold bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-md ml-2 shadow-sm">Submit</button>
+                                            </div>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                                </div>
+                            <div class="mt-4 md:mt-0 text-right">
+                                {% if job.status == 'SEEKING_AGENT' %}
+                                    <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                                        Seeking Agent
+                                    </span>
+                                {% elif job.status == 'OPEN' %}
+                                    <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-800">
+                                        Open
+                                    </span>
+                                {% elif job.status == 'FILLED' %}
+                                    <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800">
+                                        Filled
+                                    </span>
+                                {% elif job.status == 'COMPLETED' %}
+                                    <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                {% endif %}
+
+                                <div class="mt-4">
+                                    {% if job.client_payment_status == 'pending' and job.status == 'COMPLETED' %}
+                                    <a href="{% url 'client_pay_for_job' job.id %}"
+                                       class="mt-4 inline-block text-sm font-semibold text-green-600 hover:text-green-800 mr-4"
+                                       onclick="return confirm('Simulate payment to {{ job.agent.agency_name }}?');">
+                                        Pay Agent Now
+                                    </a>
+                                    {% endif %}
+
+                                    {% if job.status != 'COMPLETED' %}
+                                    <a href="{% url 'delete_job' job.id %}"
+                                       class="mt-4 inline-block text-sm font-semibold text-red-600 hover:text-red-800"
+                                       onclick="return confirm('Are you sure you want to delete this job? All related postings and applications will also be removed. This cannot be undone.');">
+                                        Delete Job
+                                    </a>
+                                    {% else %}
+                                    <span class="mt-4 inline-block text-sm font-semibold text-slate-400" title="Completed jobs cannot be deleted.">
+                                        Delete (Locked)
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if job.status == 'FILLED' or job.status == 'COMPLETED' %}
+                        <div class="mt-4 pt-4 border-t border-slate-200">
+                            <h4 class="text-sm font-semibold text-slate-700">Assigned Workers:</h4>
+                            <ul class="list-disc list-inside mt-2 text-sm text-slate-600 space-y-1">
+                                {% with job.postings.all.0.applications.all as applications %}
+                                    {% for app in applications %}
+                                        {% if app.status == 'COMPLETED' or app.status == 'ACCEPTED' or app.status == 'PROOF_SUBMITTED' or app.status == 'PROOF_REJECTED' %}
+                                            <li>
+                                                <strong>{{ app.worker.name }}</strong> ({{ app.worker.phone }})
+                                                - <span class="text-xs font-medium">
+                                                    {{ app.get_status_display }}
+                                                    {% if app.worker.rating > 0 %}
+                                                        <span class="font-bold text-yellow-500">({{ app.worker.rating|floatformat:1 }} ★)</span>
+                                                    {% endif %}
+                                                </span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="p-6 text-center text-slate-500">
+                        You have not posted any jobs yet.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
