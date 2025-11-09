@@ -1,0 +1,25 @@
+# Database
+*.sqlite3
+db.sqlite3
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Media files (user uploads)
+/media/
+
+# Staticfiles directory (the one we created)
+/staticfiles/
